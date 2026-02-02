@@ -6,25 +6,41 @@ from sklearn.inspection import permutation_importance
 from model_registry import get_models
 
 
-AVAILABLE_SCORERS = {
-    'accuracy': 'accuracy',
-    'balanced_accuracy': 'balanced_accuracy',
-    'precision': 'precision',
-    'recall': 'recall',
-    'f1': 'f1',
-    'roc_auc': 'roc_auc',
-    'average_precision': 'average_precision',
-}
+def _get_scorer(metric, task_type):
+    if task_type == 'regression':
+        mapping = {
+            'r2': 'r2',
+            'mae': 'neg_mean_absolute_error',
+            'mse': 'neg_mean_squared_error',
+            'rmse': 'neg_mean_squared_error',
+        }
+        return mapping.get(metric, 'r2')
+
+    mapping = {
+        'accuracy': 'accuracy',
+        'balanced_accuracy': 'balanced_accuracy',
+        'precision': 'precision_weighted',
+        'recall': 'recall_weighted',
+        'f1': 'f1_weighted',
+        'roc_auc': 'roc_auc',
+        'average_precision': 'average_precision',
+    }
+    return mapping.get(metric, 'f1_weighted')
 
 
-def _get_scorer(metric):
-    return AVAILABLE_SCORERS.get(metric, 'f1')
-
-
-def compute_feature_importance(X_train, y_train, X_test, y_test, metric='f1', n_repeats=5, random_state=42):
+def compute_feature_importance(
+    X_train,
+    y_train,
+    X_test,
+    y_test,
+    metric='f1',
+    n_repeats=5,
+    random_state=42,
+    task_type='classification',
+):
     results = []
-    models = get_models()
-    scorer = _get_scorer(metric)
+    models = get_models(task_type=task_type)
+    scorer = _get_scorer(metric, task_type)
 
     for name, model in models.items():
         row = {'model': name}
