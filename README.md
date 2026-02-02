@@ -1,8 +1,8 @@
 # ML Eval Trading
 
-This project is a Streamlit app for **market ML model evaluation**. It builds a unified dataset from market data, lets you select technical indicators, and compares many sklearn models on the *same* feature set. It supports volatility forecasting, rolling stability analysis, and market regime detection.
+This project is a Streamlit app for market ML model evaluation. It builds a unified dataset from market data, lets you select technical indicators, and compares many sklearn models on the same feature set. It supports volatility forecasting, rolling stability analysis, and market regime detection.
 
-It is **not** a trading system and does **not** do backtesting. It is strictly for model evaluation on time-ordered splits.
+It is not a trading system and does not do backtesting. It is strictly for model evaluation on time-ordered splits.
 
 ---
 
@@ -11,9 +11,9 @@ It is **not** a trading system and does **not** do backtesting. It is strictly f
 - Downloads OHLCV data for a user-chosen ticker/period/interval.
 - Builds a feature table from OHLCV + returns + Tulipy indicators.
 - Lets you choose a target:
-  - **Return signal (binary)**
-  - **Volatility regression (next-period realized volatility)**
-  - **Volatility regime classification (low/medium/high)**
+  - Return signal (binary)
+  - Volatility regression (next-period realized volatility)
+  - Volatility regime classification (low/medium/high)
 - Trains many sklearn models on the same dataset.
 - Reports model metrics.
 - Computes permutation-importance heatmaps.
@@ -54,7 +54,8 @@ It is **not** a trading system and does **not** do backtesting. It is strictly f
 ---
 
 ## Requirements
-- Install dependencies (example):
+
+Install dependencies (example):
 
 ```bash
 pip install streamlit yfinance tulipy scikit-learn pandas numpy matplotlib seaborn
@@ -74,9 +75,9 @@ streamlit run streamlit_app.py
 
 ### 1) Data Inputs
 
-- **Ticker**: e.g., `JPM`, `AAPL`, `SPY`.
-- **Period**: yfinance period (e.g., `1y`, `5y`, `10y`).
-- **Interval**: yfinance interval (e.g., `1d`, `1h`).
+- **Ticker**: the symbol to download from Yahoo Finance (e.g., `JPM`, `AAPL`, `SPY`).
+- **Period**: how much history to fetch (yfinance period string, e.g., `1y`, `5y`, `10y`).
+- **Interval**: bar size for the data (e.g., `1d`, `1h`, `15m`).
 
 Click **Build dataset** to download data and generate features.
 
@@ -86,47 +87,54 @@ Click **Build dataset** to download data and generate features.
 
 #### A) Return Signal (binary)
 - Target = `1` if next-period return > threshold, else `0`.
-- You control **Signal threshold**.
-- Task type: **classification**.
+- **Signal threshold**: minimum next-bar return to count as a positive signal.
+- Task type: classification.
 
 #### B) Volatility (regression)
-- Target = next-period **realized volatility**.
+- Target = next-period realized volatility.
 - Volatility is computed from rolling std of returns.
-- Task type: **regression**.
+- Task type: regression.
 
 #### C) Volatility Regime (3-class)
 - Target = low / medium / high volatility regime.
-- Regimes are defined by quantiles of **future volatility** based on the training slice.
-- Task type: **classification**.
+- Regimes are defined by quantiles of future volatility based on the training slice.
+- Task type: classification.
 
 ---
 
 ### 3) Volatility Settings
 
-- **Volatility window (bars)**: rolling window length for realized vol.
+- **Volatility window (bars)**: rolling window length used to compute realized volatility.
 - For volatility regimes:
-  - **Low regime quantile** (e.g., 0.33)
-  - **High regime quantile** (e.g., 0.66)
+  - **Low regime quantile**: threshold for the low-vol regime (e.g., 0.33).
+  - **High regime quantile**: threshold for the high-vol regime (e.g., 0.66).
 
 ---
 
 ### 4) Train/Test Split
 
 - **Train size** sets the time-ordered split (no shuffling).
-- Typical values: `0.7`�`0.85`.
+- Typical values: `0.7`-`0.85`.
 
 ---
 
 ### 5) Indicators (Tulipy)
 
 - The app detects installed Tulipy indicators and lists them.
-- Select indicators and set inputs/params.
+- **Inputs**: which price/volume series the indicator uses (e.g., `close`, `high`, `low`).
+- **Params**: indicator-specific parameters (e.g., lookback windows).
 - Inputs options are defined in `indicator_registry.py`.
-- You can also add **custom indicators** via JSON:
+- You can also add custom indicators via JSON:
 
 ```json
 [{"name": "rsi", "inputs": ["close"], "params": [14], "prefix": "rsi_custom"}]
 ```
+
+Custom indicator fields:
+- **name**: Tulipy function name.
+- **inputs**: list of input series names.
+- **params**: list of numeric parameters.
+- **prefix**: output column prefix (optional).
 
 ---
 
@@ -154,8 +162,8 @@ Model types:
 
 ### 8) Permutation Importance Heatmap
 
-- Select metric (classification or regression).
-- Set permutation repeats.
+- **Importance metric**: what performance metric to measure drop against (varies by task type).
+- **Permutation repeats**: number of shuffles per feature (higher = more stable, slower).
 - Click **Compute heatmap** to generate feature importance matrix.
 
 ---
@@ -165,12 +173,12 @@ Model types:
 This evaluates how model performance changes over time.
 
 Controls:
-- **Rolling train window**
-- **Rolling test window**
-- **Step size**
-- **Metric** for rolling evaluation
-- **Models to include** (limit to reduce runtime)
-- **Time-sliced permutation importance** (optional � expensive)
+- **Rolling train window**: rows per training slice.
+- **Rolling test window**: rows per test slice.
+- **Step size**: how far the window advances each iteration.
+- **Rolling metric**: metric used for the rolling score.
+- **Models to include**: limit to reduce runtime.
+- **Time-sliced permutation importance**: optional, very expensive.
 
 Outputs:
 - Window-by-window scores.
@@ -181,9 +189,9 @@ Outputs:
 
 ### 10) Market Regime Detection (Clustering)
 
-- Enable clustering-based regimes.
-- Select regime features (volatility, volume, returns, etc.).
-- Choose number of clusters.
+- **Enable clustering-based regimes**: runs KMeans on chosen features.
+- **Regime features**: columns used for clustering (volatility, volume, returns, etc.).
+- **Regime clusters**: number of regimes to discover.
 - Click **Compute regimes**.
 
 Outputs:
@@ -191,7 +199,7 @@ Outputs:
 - Regime-aware metrics per model.
 - Regime plots with highlighted spans.
 
-**Regime naming** is based on average realized volatility:
+Regime naming is based on average realized volatility:
 - Low Vol / Mean-Reverting
 - Normal Vol / Mixed
 - High Vol / Risk-Off
@@ -204,7 +212,7 @@ Outputs:
 For classification targets only:
 - Each model gets its own price chart.
 - Predicted signal points are plotted on the price.
-- You can overlay selected indicators.
+- **Indicators to plot**: overlay these series under the price chart.
 
 ---
 
