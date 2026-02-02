@@ -4,6 +4,8 @@ This project is a Streamlit app for market ML model evaluation. It builds a unif
 
 It is not a trading system and does not do backtesting. It is strictly for model evaluation on time-ordered splits.
 
+**Try it out here - [https://ml-market-eval.streamlit.app](https://ml-market-eval.streamlit.app)**
+
 ---
 
 ## What This Project Does (At a Glance)
